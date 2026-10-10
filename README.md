@@ -8,6 +8,7 @@ Please open a Github issue if things aren't working properly, or even if you jus
 * Choose what to hide: summaries (TV and/or movies), episode titles, episode thumbnails.
 * Choose exactly which libraries to include (can be TV libraries, movie libraries, or both)
 * Ignore list for shows and individual movies (leaves all fields showing, even when unwatched)
+* Optional include list to hide spoilers only for selected shows and movies
 * Doesn't need to run on the Plex server -- can run on e.g. a Windows desktop with the Plex server on a NAS
 * Fairly performant: runs in a few seconds with a fairly large library
 * Tested on Windows and Linux, but should run on just about anything that runs Python
@@ -108,6 +109,16 @@ Next, look at the [Configuration](#configuration) section below.
 
 Regardless of your operating system, you need to copy the "config\_sample.toml" file to "config.toml" and edit it (with any text editor, Notepad works for Windows users).  
 Most settings should be quite straightforward with the comments in the file.
+
+To hide spoilers only for selected shows or movies, add an `included_items` whitelist to `config.toml`:
+
+```toml
+included_items = """
+Celebrity Traitors Uncloaked
+"""
+```
+
+Use one exact, case-sensitive show or movie title per line. An empty or omitted whitelist keeps the default behavior of hiding spoilers for all titles except those in `ignored_items`. Both lists can be used together; `ignored_items` takes precedence. With a nonempty whitelist, previously hidden fields on titles outside the whitelist are restored, subject to `process_thumbnails`. Watched items are still restored normally, and the explicit `--also-hide` argument can override either list.
 
 For the "plex\_token" setting, you need to fetch a Plex token from a browser that is currently signed in to your Plex server.  
 See for example [this guide](https://www.plexopedia.com/plex-media-server/general/plex-token/) on how to fetch a token. (Ignore the part later in the article about server tokens, the bit you want is at the top!)

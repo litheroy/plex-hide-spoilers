@@ -161,7 +161,14 @@ def read_config(config_path = None):
     if 'ignored_items' not in config or not isinstance(config['ignored_items'], list):
         config['ignored_items'] = []
 
-    known_settings = ('plex_url', 'plex_token', 'libraries', 'ignored_items', 'hidden_summary_string',
+    # The whitelist is optional; an empty list preserves blacklist-only behavior.
+    included_items = config.get('included_items', '')
+    if not isinstance(included_items, str):
+        print('Configuration setting "included_items" must be a TOML multiline string')
+        sys.exit(2)
+    config['included_items'] = [line.strip() for line in included_items.splitlines() if line.strip()]
+
+    known_settings = ('plex_url', 'plex_token', 'libraries', 'ignored_items', 'included_items', 'hidden_summary_string',
                            'hidden_title_string', 'hide_summaries', 'hide_thumbnails', 'hide_titles', 'process_thumbnails')
     errors = []
     for setting in known_settings:
@@ -293,9 +300,14 @@ def compare_actions(a):
 def should_ignore_item(item):
     """ Returns true for items we should ignore (never hide any fields for) """
     if item.type == 'episode':
-        return item.grandparentTitle.strip() in config['ignored_items']
-    if item.type == 'movie':
-        return item.title.strip() in config['ignored_items']
+        title = item.grandparentTitle.strip()
+    elif item.type == 'movie':
+        title = item.title.strip()
+    else:
+        return False
+
+    return title in config['ignored_items'] or (
+        bool(config['included_items']) and title not in config['included_items'])
 
 def calculate_actions(items, also_hide=None, also_unhide=None):
     """ Examine all items and calculate which actions we need to take """
